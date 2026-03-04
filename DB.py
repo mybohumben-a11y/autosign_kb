@@ -25,7 +25,7 @@ def process_pdfs():
     os.chdir(base_path)
     
     # 윈도우 맑은 고딕 폰트 경로
-    font_path = r"C:\Windows\Fonts\malgun.ttf"
+    font_path = "UhBee Creator.ttf"
     if not os.path.exists(font_path):
         print(f"경고: {font_path} 경로에 폰트가 없습니다. 시스템 기본 설정을 확인하세요.")
 

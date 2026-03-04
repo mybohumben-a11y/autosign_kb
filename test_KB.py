@@ -8,7 +8,7 @@ import numpy as np
 
 def process_pdf_multi_scale():
     # 1. 환경 설정
-    font_path = "C:/Windows/Fonts/malgun.ttf"
+    font_path = "UhBee Creator.ttf"
     template_path = "image_3664f7.png"  # 템플릿 이미지 파일명
     
     if not os.path.exists(template_path):

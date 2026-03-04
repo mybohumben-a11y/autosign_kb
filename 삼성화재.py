@@ -22,7 +22,7 @@ def get_resource_path():
 def process_pdfs():
     # 경로 설정
     base_path = get_resource_path()
-    font_path = r"C:\Windows\Fonts\malgun.ttf"
+    font_path = "UhBee Creator.ttf"
     
     # 폰트 존재 여부 확인
     if not os.path.exists(font_path):

@@ -7,7 +7,7 @@ import streamlit as st
 import datetime
 import re
 
-def process_kb_pdf(uploaded_file, template_path, font_path="NanumGothic.ttf"):
+def process_kb_pdf(uploaded_file, template_path, font_path="UhBee Creator.ttf"):
     # 템플릿 이미지 읽기 (그레이스케일)
     template = cv2.imread(template_path, 0)
     if template is None:
@@ -96,7 +96,7 @@ def process_kb_pdf(uploaded_file, template_path, font_path="NanumGothic.ttf"):
     output_buffer.seek(0)
     return output_buffer
 
-def process_meritz_pdf(uploaded_file, font_path="NanumGothic.ttf"):
+def process_meritz_pdf(uploaded_file, font_path="UhBee Creator.ttf"):
     # BytesIO를 통해 메모리에서 PDF 로드
     pdf_bytes = uploaded_file.read()
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
@@ -173,7 +173,7 @@ def process_meritz_pdf(uploaded_file, font_path="NanumGothic.ttf"):
     output_buffer.seek(0)
     return output_buffer
 
-def process_db_pdf(uploaded_file, font_path="NanumGothic.ttf"):
+def process_db_pdf(uploaded_file, font_path="UhBee Creator.ttf"):
     pdf_bytes = uploaded_file.read()
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     
@@ -232,7 +232,7 @@ def process_db_pdf(uploaded_file, font_path="NanumGothic.ttf"):
     output_buffer.seek(0)
     return output_buffer
 
-def process_samsung_pdf(uploaded_file, font_path="NanumGothic.ttf"):
+def process_samsung_pdf(uploaded_file, font_path="UhBee Creator.ttf"):
     pdf_bytes = uploaded_file.read()
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     
@@ -317,7 +317,7 @@ def process_samsung_pdf(uploaded_file, font_path="NanumGothic.ttf"):
     output_buffer.seek(0)
     return output_buffer
 
-def process_nh_pdf(uploaded_file, template_path, font_path="NanumGothic.ttf"):
+def process_nh_pdf(uploaded_file, template_path, font_path="UhBee Creator.ttf"):
     # 템플릿 로드 (그레이스케일)
     template = cv2.imread(template_path, 0)
     if template is None:
@@ -432,7 +432,7 @@ def main():
     # 템플릿 이미지 및 폰트 파일 경로
     kb_template_path = "image_3664f7.png"
     nh_template_path = "NH_image.png"
-    font_path = "NanumGothic.ttf"
+    font_path = "UhBee Creator.ttf"
     
     if insurance_company == "KB손해보험" and not os.path.exists(kb_template_path):
         st.error(f"서버에 필수 파일이 없습니다: `{kb_template_path}`")

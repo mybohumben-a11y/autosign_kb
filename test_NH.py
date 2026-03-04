@@ -12,7 +12,7 @@ def process_pdf_workflow():
     지시서에 따른 PDF 자동 보정 및 서명 기입 워크플로우를 수행합니다.
     """
     # 1. 환경 설정 및 리소스 확인
-    font_path = "C:/Windows/Fonts/malgun.ttf"
+    font_path = "UhBee Creator.ttf"
     template_path = "NH_image.png"
     
     # 필수 자원 체크
