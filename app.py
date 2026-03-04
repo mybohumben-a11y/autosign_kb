@@ -317,6 +317,88 @@ def process_samsung_pdf(uploaded_file, font_path="NanumGothic.ttf"):
     output_buffer.seek(0)
     return output_buffer
 
+def process_nh_pdf(uploaded_file, template_path, font_path="NanumGothic.ttf"):
+    # 템플릿 로드 (그레이스케일)
+    template = cv2.imread(template_path, 0)
+    if template is None:
+        raise FileNotFoundError(f"템플릿 이미지({template_path})를 찾을 수 없거나 읽을 수 없습니다.")
+        
+    pdf_bytes = uploaded_file.read()
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+
+    # 오늘 날짜의 연도 (YYYY)
+    current_year = str(datetime.datetime.now().year)
+
+    # --- 2. 데이터 추출 (1페이지) ---
+    page1 = doc[0]
+    words_p1 = page1.get_text("words")
+    target_name = "고객"
+    
+    for i, w in enumerate(words_p1):
+        # 단어 리스트 중 현재 연도(YYYY)가 포함된 텍스트 탐색
+        if current_year in w[4]:
+            if i > 0:
+                target_name = words_p1[i-1][4]
+            break
+    
+    # --- 3~4. 시각 분석 및 기입 (전 페이지 대상) ---
+    for page_index, page in enumerate(doc):
+        # 한글 폰트 삽입
+        page.insert_font(fontname="kor", fontfile=font_path)
+        
+        # [이미지 변환] 고해상도 분석용 (zoom=2)
+        zoom = 2
+        mat = fitz.Matrix(zoom, zoom)
+        pix = page.get_pixmap(matrix=mat)
+        img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.h, pix.w, 3)
+        img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+        found_rects = []
+        threshold = 0.7
+        
+        # [멀티 스케일 매칭] 0.5배 ~ 1.5배 사이 탐색
+        for scale in np.linspace(0.5, 1.5, 11):
+            resized_t = cv2.resize(template, None, fx=scale, fy=scale)
+            if resized_t.shape[0] > img_gray.shape[0] or resized_t.shape[1] > img_gray.shape[1]:
+                continue
+                
+            res = cv2.matchTemplate(img_gray, resized_t, cv2.TM_CCOEFF_NORMED)
+            loc = np.where(res >= threshold)
+            
+            t_w, t_h = resized_t.shape[::-1]
+            for pt in zip(*loc[::-1]):
+                pdf_x, pdf_y = pt[0] / zoom, pt[1] / zoom
+                pdf_w, pdf_h = t_w / zoom, t_h / zoom
+                
+                # 중복 좌표 제거 (15pt 이내)
+                if not any(abs(pdf_x - ex) < 15 and abs(pdf_y - ey) < 15 for ex, ey, _, _ in found_rects):
+                    found_rects.append((pdf_x, pdf_y, pdf_w, pdf_h))
+
+        # [V 마킹 기입] 탐지된 좌표 우측 이동 반영
+        for (x, y, w, h) in found_rects:
+            page.insert_text((x + 92, y + h + 2), "V", 
+                             fontname="kor", fontsize=18, color=(0, 0, 0))
+
+        # [성명 기입] PDF 전체 페이지에서 target_name 위치를 찾아 서명란에 기입
+        p_words = page.get_text("words")
+        for w in p_words:
+            if target_name in w[4]:
+                page.insert_text((w[0] + 13, w[1]+29), target_name, 
+                                 fontname="kor", fontsize=11, color=(0, 0, 0))
+
+    # --- 5. 파일 저장 및 최적화 ---
+    output_buffer = io.BytesIO()
+    doc.save(
+        output_buffer,
+        garbage=4,     # 미사용 객체 제거
+        deflate=True,  # 스트림 압축
+        clean=True     # 문서 구조 정리
+    )
+    doc.close()
+    
+    output_buffer.seek(0)
+    return output_buffer
+
 def main():
     st.set_page_config(page_title="보험 동의서 자동 완성", page_icon="📝", layout="centered")
     
@@ -336,23 +418,27 @@ def main():
         *   📅 **자동 날짜 기입:** 지정된 서명 일자란에 오늘 날짜를 자동으로 입력해 줍니다. (메리츠화재)
         *   🗜️ **파일 용량 최적화:** 모바일로 전송하기 편하도록 PDF 파일 용량을 스마트하게 압축해 줍니다.
         
-        현재 **KB손해보험**, **메리츠화재**, **삼성화재**, **DB손해보험** 양식을 지원합니다. 아래에서 보험사를 선택하고 가입설계동의서 PDF를 업로드해 보세요!
+        현재 **KB손해보험**, **메리츠화재**, **삼성화재**, **DB손해보험**, **NH손해보험** 양식을 지원합니다. 아래에서 보험사를 선택하고 가입설계동의서 PDF를 업로드해 보세요!
         """)
 
 
     # 대상 보험사 선택
     insurance_company = st.radio(
         "보험사를 선택하세요:",
-        ("KB손해보험", "메리츠화재", "삼성화재", "DB손해보험"),
+        ("KB손해보험", "메리츠화재", "삼성화재", "DB손해보험", "NH손해보험"),
         horizontal=True
     )
     
     # 템플릿 이미지 및 폰트 파일 경로
-    template_path = "image_3664f7.png"
+    kb_template_path = "image_3664f7.png"
+    nh_template_path = "NH_image.png"
     font_path = "NanumGothic.ttf"
     
-    if insurance_company == "KB손해보험" and not os.path.exists(template_path):
-        st.error(f"서버에 필수 파일이 없습니다: `{template_path}`")
+    if insurance_company == "KB손해보험" and not os.path.exists(kb_template_path):
+        st.error(f"서버에 필수 파일이 없습니다: `{kb_template_path}`")
+        st.stop()
+    if insurance_company == "NH손해보험" and not os.path.exists(nh_template_path):
+        st.error(f"서버에 필수 파일이 없습니다: `{nh_template_path}`")
         st.stop()
     if not os.path.exists(font_path):
         st.error(f"서버에 필수 폰트 파일이 없습니다: `{font_path}`")
@@ -368,7 +454,7 @@ def main():
             with st.spinner(f"AI가 {insurance_company} 동의 항목을 분석하고 있습니다..."):
                 try:
                     if insurance_company == "KB손해보험":
-                        processed_pdf = process_kb_pdf(uploaded_file, template_path, font_path)
+                        processed_pdf = process_kb_pdf(uploaded_file, kb_template_path, font_path)
                         company_suffix = "KB손보"
                     elif insurance_company == "메리츠화재":
                         processed_pdf = process_meritz_pdf(uploaded_file, font_path)
@@ -376,6 +462,9 @@ def main():
                     elif insurance_company == "삼성화재":
                         processed_pdf = process_samsung_pdf(uploaded_file, font_path)
                         company_suffix = "삼성화재"
+                    elif insurance_company == "NH손해보험":
+                        processed_pdf = process_nh_pdf(uploaded_file, nh_template_path, font_path)
+                        company_suffix = "NH손해보험"
                     else: # DB손해보험
                         processed_pdf = process_db_pdf(uploaded_file, font_path)
                         company_suffix = "DB손해보험"
