@@ -88,7 +88,7 @@ def process_pdfs():
                     date_ref_y1 = date_hits[0].y1
 
             # --- 작업 수행 ---
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
             today_yy = now.strftime("%y")
             today_mm = now.strftime("%m")
             today_dd = now.strftime("%d")

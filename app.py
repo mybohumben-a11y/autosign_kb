@@ -102,7 +102,7 @@ def process_meritz_pdf(uploaded_file, font_path="UhBee Creator.ttf"):
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
     # 오늘 날짜 정보 (2자리)
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
     year_str = now.strftime("%y")
     month_str = now.strftime("%m")
     day_str = now.strftime("%d")
@@ -274,7 +274,7 @@ def process_samsung_pdf(uploaded_file, font_path="UhBee Creator.ttf"):
             date_ref_y1 = date_hits[0].y1
 
     # 작업 수행
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
     today_yy = now.strftime("%y")
     today_mm = now.strftime("%m")
     today_dd = now.strftime("%d")
@@ -327,7 +327,7 @@ def process_nh_pdf(uploaded_file, template_path, font_path="UhBee Creator.ttf"):
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
     # 오늘 날짜의 연도 (YYYY)
-    current_year = str(datetime.datetime.now().year)
+    current_year = str(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).year)
 
     # --- 2. 데이터 추출 (1페이지) ---
     page1 = doc[0]
@@ -403,7 +403,7 @@ def process_hanhwa_pdf(uploaded_file, font_path="UhBee Creator.ttf"):
     pdf_bytes = uploaded_file.read()
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
     year_str = now.strftime("%y")
     month_str = now.strftime("%m")
     day_str = now.strftime("%d")

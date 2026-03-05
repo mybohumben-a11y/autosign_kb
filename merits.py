@@ -31,7 +31,7 @@ def process_pdfs():
         return
 
     # 오늘 날짜 정보 (2자리)
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
     year_str = now.strftime("%y")
     month_str = now.strftime("%m")
     day_str = now.strftime("%d")

@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import fitz  # PyMuPDF
 import cv2
 import numpy as np
@@ -40,7 +40,7 @@ def process_pdf_workflow():
     template = cv2.imread(template_path, 0)
     
     # 오늘 날짜의 연도 (YYYY)
-    current_year = str(datetime.now().year)
+    current_year = str(datetime.now(timezone(timedelta(hours=9))).year)
     print(f"[*] 분석 기준 연도: {current_year}")
 
     for file_name in pdf_files:

@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # 1. PyMuPDF (fitz) 라이브러리 체크 및 임포트
 try:
@@ -96,7 +96,7 @@ def process_pdfs():
                     page.insert_text(p2, client_name, fontname="kor", fontsize=11)
 
             # 새 파일명 생성 및 저장
-            timestamp = datetime.now().strftime("%H%M%S")
+            timestamp = datetime.now(timezone(timedelta(hours=9))).strftime("%H%M%S")
             name_only = os.path.splitext(filename)[0]
             new_filename = f"{name_only}_날짜보정완료_{timestamp}.pdf"
             
